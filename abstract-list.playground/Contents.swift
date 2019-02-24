@@ -243,3 +243,10 @@ product(listOfInts) == product_v1(listOfInts)
 
 // These functions are abstractions on general recursive list travesing.
 // Such different kind of view instead of reducing state from `for` loop.
+
+/*:
+ ### Links:
+ [what?](https://htdp.org/)
+ 
+ [so, what?](https://github.com/pointfreeco/swift-nonempty)
+ */

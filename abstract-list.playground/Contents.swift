@@ -1,5 +1,5 @@
 // (abstract list)
-//  The playground called to present standard every day list operations under different point of view
+//  The playground called to present standard everyday list operations under a different point of view
 
 // - What is List?
 

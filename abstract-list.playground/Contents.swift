@@ -1,57 +1,58 @@
-//: Playground - noun: a place where people can play
+// (abstract list)
+//  The playground called to present standard every day list operations under different point of view
 
-// Called to present standard every day things ander different point of view
+// - What is List?
 
-indirect enum List<T> {
+indirect enum List<E> {
     case empty
-    case list(T, List<T>)
+    case list(E, List<E>)
 }
 
-// MARK: - API
+// - API for List
 
-func isEmpty<T>(_ list: List<T>) -> Bool {
+func isEmpty<E>(_ list: List<E>) -> Bool {
     switch list {
     case .empty: return true
     default: return false
     }
 }
 
-func first<T>(_ list: List<T>) -> T {
+func first<E>(_ list: List<E>) -> E {
     switch list {
     case .empty: fatalError("first on empty list")
     case .list(let first, _): return first
     }
 }
 
-func rest<T>(_ list: List<T>) -> List<T> {
+func rest<E>(_ list: List<E>) -> List<E> {
     switch list {
     case .empty: fatalError("last on empty list")
     case .list(_, let last): return last
     }
 }
 
-// MARK: - Construction
+// - List construction
 
-func construct<T>(_ value: T, _ list: List<T>) -> List<T> {
-    return .list(value, list)
+func construct<E>(_ element: E, _ list: List<E>) -> List<E> {
+    return .list(element, list)
 }
 
 // Name `construct` as `cons` for short
-func cons<T>(_ value: T, _ list: List<T>) -> List<T> {
-    return construct(value, list)
+func cons<E>(_ element: E, _ list: List<E>) -> List<E> {
+    return construct(element, list)
 }
 
-// MARK: - Examples of what list could contains and what operations we can do
+// - Examples of what list could contains and what operations we can do
 
 let listOfInts = cons(1, cons(2, cons(3, .empty)))
 
-// MARK: - Add1
+// - Add1
 
 func add1(_ n: Int) -> Int {
     return n + 1
 }
 
-// Traversing the list by using so-called natural (or structural) recursion
+// Traversing the list by using so-called `natural` (or structural) recursion
 func add1ToEach(_ list: List<Int>) -> List<Int> {
     return isEmpty(list) ?
         .empty :
@@ -61,29 +62,29 @@ func add1ToEach(_ list: List<Int>) -> List<Int> {
 
 add1ToEach(listOfInts)
 
-// MARK: - Extract players
+// - Extract players
 
 struct Player {
     let name: String
     let score: Int
 }
 
-// MARK: - Better construct
+// - Better construct
 
 extension List: ExpressibleByArrayLiteral {
-    typealias ArrayLiteralElement = T
-    init(arrayLiteral elements: T...) {
+    typealias ArrayLiteralElement = E
+    init(arrayLiteral elements: E...) {
         // recude with base `.empty` and flipped cons
         self = elements.reduce(.empty, flippedCons)
     }
 }
 
 // Better to use generalized flip application on cons instead
-func flippedCons<T>(_ list: List<T>, _ value: T) -> List<T> {
-    return cons(value, list)
+func flippedCons<E>(_ list: List<E>, _ element: E) -> List<E> {
+    return cons(element, list)
 }
 
-// MARK: - Return to extract players
+// - Return to extract players
 
 let players: List<Player> = [Player(name: "Andrew", score: 22),
                              Player(name: "Petro", score: 10),
@@ -104,10 +105,11 @@ extract(players: players, withGreaterThan: 0)
 extract(players: players, withGreaterThan: 20)
 extract(players: players, withGreaterThan: 50)
 
-// MARK: - Map
+// - Map
 
 func add1ScoreToPlayer(player: Player) -> Player {
-    return Player(name: player.name, score: add1(player.score))
+    return Player(name: player.name,
+                  score: add1(player.score))
 }
 
 func add1ScoreToEachPlayer(players: List<Player>) -> List<Player> {
@@ -117,7 +119,7 @@ func add1ScoreToEachPlayer(players: List<Player>) -> List<Player> {
              add1ScoreToEachPlayer(players: rest(players)))
 }
 
-// MARK: - Similarities??
+// - Similarities??
 
 //func add1ToEach(_ list: List<Int>) -> List<Int> {
 //    return isEmpty(list) ?
@@ -126,7 +128,7 @@ func add1ScoreToEachPlayer(players: List<Player>) -> List<Player> {
 //             add1ToEach(rest(list)))
 //}
 
-func map<T, U>(_ list: List<T>, transform: (T) -> U) -> List<U> {
+func map<E, R>(_ list: List<E>, transform: (E) -> R) -> List<R> {
     return isEmpty(list) ?
         .empty :
         cons(transform(first(list)),
@@ -141,20 +143,34 @@ func add1ToEach_v1(_ list: List<Int>) -> List<Int> {
     return map(list, transform: add1)
 }
 
-add1ToEach_v1(listOfInts)
+// - List Equtable
 
+extension List: Equatable where E: Equatable {
+    static func == (lhs: List<E>, rhs: List<E>) -> Bool {
+        return isEmpty(lhs) && isEmpty(rhs) ?
+            true :
+            first(lhs) == first(rhs) && rest(lhs) == rest(rhs)
+    }
+}
 
-// MARK: - The same abstracting rules applies to extract(players:withGreaterThan:)
+add1ToEach(listOfInts) == add1ToEach_v1(listOfInts)
 
-// MARK: - Filter
+extension Player: Equatable {}
+add1ScoreToEachPlayer(players: players) == add1ScoreToEachPlayer_v1(players: players)
 
-func filter<T>(_ list: List<T>, predicate: (T) -> Bool) -> List<T> {
+// - The same abstracting rules applies to extract(players:withGreaterThan:)
+
+// - Filter
+
+func filter<E>(_ list: List<E>, predicate: (E) -> Bool) -> List<E> {
     if isEmpty(list) {
         return .empty
     } else {
         return predicate(first(list)) ?
-            cons(first(list), filter(rest(list), predicate: predicate)) :
-            filter(rest(list), predicate: predicate)
+            cons(first(list),
+                 filter(rest(list), predicate: predicate)) :
+            filter(rest(list),
+                   predicate: predicate)
     }
 }
 
@@ -162,11 +178,13 @@ func extract_v1(players: List<Player>, withGreaterThan score: Int) -> List<Playe
     return filter(players) { $0.score > score }
 }
 
-extract_v1(players: players, withGreaterThan: 0)
-extract_v1(players: players, withGreaterThan: 20)
-extract_v1(players: players, withGreaterThan: 50)
+extract(players: players, withGreaterThan: 0) == extract_v1(players: players, withGreaterThan: 0)
+extract(players: players, withGreaterThan: 20) == extract_v1(players: players, withGreaterThan: 20)
+extract(players: players, withGreaterThan: 50) == extract_v1(players: players, withGreaterThan: 50)
 
-// MARK: - Sum of ints
+// - OK, map and filter done. What's left?
+
+// - Sum of ints
 
 func sum(_ list: List<Int>) -> Int {
     return isEmpty(list) ?
@@ -176,12 +194,19 @@ func sum(_ list: List<Int>) -> Int {
 
 sum(listOfInts)
 
-// MARK: - Reduce
+// - Product of ints
 
-// What simmilar between Ex. 1 and Ex. 4?
-// Another examples are product, strings concat.
+func product(_ list: List<Int>) -> Int {
+    return isEmpty(list) ?
+        1 :
+        first(list) * product(rest(list))
+}
 
-func reduce<T, R>(_ list: List<T>, base: R, combine: (T, R) -> R) -> R {
+product(listOfInts)
+
+// - Reduce
+
+func reduce<E, R>(_ list: List<E>, base: R, combine: (E, R) -> R) -> R {
     return isEmpty(list) ?
         base :
         combine(first(list),
@@ -194,7 +219,13 @@ func sum_v1(_ list: List<Int>) -> Int {
 
 sum(listOfInts) == sum_v1(listOfInts)
 
+func product_v1(_ list: List<Int>) -> Int {
+    return reduce(list, base: 1, combine: *)
+}
+
+product(listOfInts) == product_v1(listOfInts)
+
 // Additionally map & filter possible to express in rules of reduce
 
-// First class functions are abstractions on general resurcive list travesing.
+// These functions are abstractions on general recursive list travesing.
 // Such different kind of view instead of reducing state from `for` loop.

@@ -10,7 +10,6 @@ indirect enum List<E> {
 
 // - API for List
 
-// ------------------------------------------------ snip-api
 func isEmpty<E>(_ list: List<E>) -> Bool {
     switch list {
     case .empty: return true
@@ -31,11 +30,9 @@ func rest<E>(_ list: List<E>) -> List<E> {
     case .list(_, let last): return last
     }
 }
-// ------------------------------------------------ end
 
 // - List construction
 
-// ------------------------------------------------ snip-cons
 func construct<E>(_ element: E, _ list: List<E>) -> List<E> {
     return .list(element, list)
 }
@@ -44,7 +41,6 @@ func construct<E>(_ element: E, _ list: List<E>) -> List<E> {
 func cons<E>(_ element: E, _ list: List<E>) -> List<E> {
     return construct(element, list)
 }
-// ------------------------------------------------ end
 
 // - Examples of what list could contains and what operations we can do
 
@@ -68,16 +64,13 @@ add1ToEach(listOfInts)
 
 // - Extract players
 
-// ------------------------------------------------ snip-player
 struct Player {
     let name: String
     let score: Int
 }
-// ------------------------------------------------ end
 
 // - Better construct (try to play with cons before)
 
-// ------------------------------------------------ snip-better-cons
 extension List: ExpressibleByArrayLiteral {
     typealias ArrayLiteralElement = E
     init(arrayLiteral elements: E...) {
@@ -90,15 +83,12 @@ extension List: ExpressibleByArrayLiteral {
 func flippedCons<E>(_ list: List<E>, _ element: E) -> List<E> {
     return cons(element, list)
 }
-// ------------------------------------------------ end
 
 // - Return to extract players
 
-// ------------------------------------------------ snip-list-players
 let players: List<Player> = [Player(name: "Andrew", score: 22),
                              Player(name: "Petro", score: 10),
                              Player(name: "James", score: 35)]
-// ------------------------------------------------ end
 
 func extract(players: List<Player>, withGreaterThan score: Int) -> List<Player> {
     if isEmpty(players) {
@@ -155,7 +145,6 @@ func add1ToEach_v1(_ list: List<Int>) -> List<Int> {
 
 // - List Equtable
 
-// ------------------------------------------------ snip-eq
 extension List: Equatable where E: Equatable {
     static func == (lhs: List<E>, rhs: List<E>) -> Bool {
         return isEmpty(lhs) && isEmpty(rhs) ?
@@ -163,7 +152,6 @@ extension List: Equatable where E: Equatable {
             first(lhs) == first(rhs) && rest(lhs) == rest(rhs)
     }
 }
-// ------------------------------------------------ end
 
 add1ToEach(listOfInts) == add1ToEach_v1(listOfInts)
 

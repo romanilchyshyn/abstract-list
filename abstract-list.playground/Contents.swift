@@ -5,6 +5,7 @@
 
 indirect enum List<E> {
     case empty
+    // E -> List<E>, i.e. Linked List
     case list(E, List<E>)
 }
 
@@ -42,31 +43,35 @@ func cons<E>(_ element: E, _ list: List<E>) -> List<E> {
     return construct(element, list)
 }
 
-// - Examples of what list could contains and what operations we can do
-
 let listOfInts = cons(1, cons(2, cons(3, .empty)))
 
-// - Add1
+// - List debug description
 
-func add1(_ n: Int) -> Int {
-    return n + 1
-}
-
-// Traversing the list by using so-called `natural` (or structural) recursion
-func add1ToEach(_ list: List<Int>) -> List<Int> {
+func describe<E>(_ list: List<E>) -> String {
     return isEmpty(list) ?
-        .empty :
-        cons(add1(first(list)),
-             add1ToEach(rest(list)))
+        ".empty":
+        "cons(\(first(list)), \(describe(rest(list))))"
 }
 
-add1ToEach(listOfInts)
+//extension List: CustomDebugStringConvertible {
+//    var debugDescription: String {
+//        return describe(self)
+//    }
+//}
 
-// - Extract players
+// - Player
 
 struct Player {
     let name: String
     let score: Int
+}
+
+extension Player: Equatable {}
+
+extension Player: CustomStringConvertible {
+    var description: String {
+        return "Player(name: \(name), score: \(score))"
+    }
 }
 
 // - Better construct (try to play with cons before)
@@ -84,26 +89,35 @@ func flippedCons<E>(_ list: List<E>, _ element: E) -> List<E> {
     return cons(element, list)
 }
 
-// - Return to extract players
-
 let players: List<Player> = [Player(name: "Andrew", score: 22),
                              Player(name: "Petro", score: 10),
                              Player(name: "James", score: 35)]
 
-func extract(players: List<Player>, withGreaterThan score: Int) -> List<Player> {
-    if isEmpty(players) {
-        return .empty
-    } else {
-        return first(players).score > score ?
-            cons(first(players),
-                 extract(players: rest(players), withGreaterThan: score)) :
-            extract(players: rest(players), withGreaterThan: score)
+// - List Equatable
+
+extension List: Equatable where E: Equatable {
+    static func == (lhs: List<E>, rhs: List<E>) -> Bool {
+        return isEmpty(lhs) && isEmpty(rhs) ?
+            true :
+            first(lhs) == first(rhs) && rest(lhs) == rest(rhs)
     }
 }
 
-extract(players: players, withGreaterThan: 0)
-extract(players: players, withGreaterThan: 20)
-extract(players: players, withGreaterThan: 50)
+// - Add1
+
+func add1(_ n: Int) -> Int {
+    return n + 1
+}
+
+// Traversing the list by using so-called `natural` (or structural) recursion
+func add1ToEach(_ list: List<Int>) -> List<Int> {
+    return isEmpty(list) ?
+        .empty :
+        cons(add1(first(list)),
+             add1ToEach(rest(list)))
+}
+
+add1ToEach(listOfInts)
 
 // - Map
 
@@ -121,13 +135,6 @@ func add1ScoreToEachPlayer(players: List<Player>) -> List<Player> {
 
 // - Similarities??
 
-//func add1ToEach(_ list: List<Int>) -> List<Int> {
-//    return isEmpty(list) ?
-//        .empty :
-//        cons(add1(first(list)),
-//             add1ToEach(rest(list)))
-//}
-
 func map<E, R>(_ list: List<E>, transform: (E) -> R) -> List<R> {
     return isEmpty(list) ?
         .empty :
@@ -143,22 +150,26 @@ func add1ToEach_v1(_ list: List<Int>) -> List<Int> {
     return map(list, transform: add1)
 }
 
-// - List Equtable
+add1ToEach(listOfInts) == add1ToEach_v1(listOfInts)
 
-extension List: Equatable where E: Equatable {
-    static func == (lhs: List<E>, rhs: List<E>) -> Bool {
-        return isEmpty(lhs) && isEmpty(rhs) ?
-            true :
-            first(lhs) == first(rhs) && rest(lhs) == rest(rhs)
+add1ScoreToEachPlayer(players: players) == add1ScoreToEachPlayer_v1(players: players)
+
+// - The same abstracting rules but for extract
+
+func extract(players: List<Player>, withGreaterThan score: Int) -> List<Player> {
+    if isEmpty(players) {
+        return .empty
+    } else {
+        return first(players).score > score ?
+            cons(first(players),
+                 extract(players: rest(players), withGreaterThan: score)) :
+            extract(players: rest(players), withGreaterThan: score)
     }
 }
 
-add1ToEach(listOfInts) == add1ToEach_v1(listOfInts)
-
-extension Player: Equatable {}
-add1ScoreToEachPlayer(players: players) == add1ScoreToEachPlayer_v1(players: players)
-
-// - The same abstracting rules applies to extract(players:withGreaterThan:)
+extract(players: players, withGreaterThan: 0)
+extract(players: players, withGreaterThan: 20)
+extract(players: players, withGreaterThan: 50)
 
 // - Filter
 
@@ -227,14 +238,22 @@ func product_v1(_ list: List<Int>) -> Int {
 
 product(listOfInts) == product_v1(listOfInts)
 
+// - Better describe
+
+func describe_v1<E>(_ list: List<E>) -> String {
+    return reduce(list, base: ".empty") { return "cons(\($0), \($1))" }
+}
+
+describe(listOfInts) == describe_v1(listOfInts)
+
 // Additionally map & filter possible to express in rules of reduce
 
 // These functions are abstractions on general recursive list travesing.
-// Such different kind of view instead of reducing state from `for` loop.
+// Such different kind of view instead of reducing state variable from `for` loop.
 
 /*:
  ### Links:
- [what?](https://htdp.org/)
+ [what?](https://htdp.org/2018-01-06/Book/part_three.html)
  
  [so, what?](https://github.com/pointfreeco/swift-nonempty)
  */

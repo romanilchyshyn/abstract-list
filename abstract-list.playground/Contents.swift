@@ -6,7 +6,7 @@
 // -------------------------------------------------- s_list start
 indirect enum List<E> {
     case empty
-    // E -> List<E>, i.e. Linked Lists
+    // E -> List<E>, i.e. Linked List
     case list(E, List<E>)
 }
 // -------------------------------------------------- s_list end

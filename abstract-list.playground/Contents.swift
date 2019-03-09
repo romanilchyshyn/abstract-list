@@ -150,6 +150,8 @@ func add1ScoreToEachPlayer(players: List<Player>) -> List<Player> {
 }
 // -------------------------------------------------- s_add1scoretoeach end
 
+add1ScoreToEachPlayer(players: players)
+
 // - Similarities??
 // - Map
 

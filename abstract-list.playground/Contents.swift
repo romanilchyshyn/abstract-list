@@ -34,30 +34,48 @@ func rest<E>(_ list: List<E>) -> List<E> {
 
 // - List construction
 
-func construct<E>(_ element: E, _ list: List<E>) -> List<E> {
-    return .list(element, list)
-}
-
-// Name `construct` as `cons` for short
 func cons<E>(_ element: E, _ list: List<E>) -> List<E> {
-    return construct(element, list)
+    return .list(element, list)
 }
 
 let listOfInts = cons(1, cons(2, cons(3, .empty)))
 
 // - List debug description
 
-func describe<E>(_ list: List<E>) -> String {
+func describe<E>(_ list: List<E>) -> String { // Will back to this later
     return isEmpty(list) ?
-        ".empty":
+        ".empty" :
         "cons(\(first(list)), \(describe(rest(list))))"
 }
 
-//extension List: CustomDebugStringConvertible {
-//    var debugDescription: String {
-//        return describe(self)
-//    }
-//}
+extension List: CustomDebugStringConvertible {
+    var debugDescription: String { return describe(self) }
+}
+
+// - List Equatable
+
+extension List: Equatable where E: Equatable {
+    static func == (lhs: List<E>, rhs: List<E>) -> Bool {
+        return isEmpty(lhs) && isEmpty(rhs) ?
+            true :
+            first(lhs) == first(rhs) && rest(lhs) == rest(rhs)
+    }
+}
+
+// - Better construct
+
+extension List: ExpressibleByArrayLiteral {
+    typealias ArrayLiteralElement = E
+    init(arrayLiteral elements: E...) {
+        // recude with base `.empty` and flipped cons
+        self = elements.reduce(.empty, flippedCons)
+    }
+}
+
+// NOTE: Better to use generalized flip application on cons instead
+func flippedCons<E>(_ list: List<E>, _ element: E) -> List<E> {
+    return cons(element, list)
+}
 
 // - Player
 
@@ -74,34 +92,10 @@ extension Player: CustomStringConvertible {
     }
 }
 
-// - Better construct (try to play with cons before)
-
-extension List: ExpressibleByArrayLiteral {
-    typealias ArrayLiteralElement = E
-    init(arrayLiteral elements: E...) {
-        // recude with base `.empty` and flipped cons
-        self = elements.reduce(.empty, flippedCons)
-    }
-}
-
-// Better to use generalized flip application on cons instead
-func flippedCons<E>(_ list: List<E>, _ element: E) -> List<E> {
-    return cons(element, list)
-}
-
+// NOTE: Try to play with cons before
 let players: List<Player> = [Player(name: "Andrew", score: 22),
                              Player(name: "Petro", score: 10),
                              Player(name: "James", score: 35)]
-
-// - List Equatable
-
-extension List: Equatable where E: Equatable {
-    static func == (lhs: List<E>, rhs: List<E>) -> Bool {
-        return isEmpty(lhs) && isEmpty(rhs) ?
-            true :
-            first(lhs) == first(rhs) && rest(lhs) == rest(rhs)
-    }
-}
 
 // - Add1
 
@@ -142,15 +136,15 @@ func map<E, R>(_ list: List<E>, transform: (E) -> R) -> List<R> {
              map(rest(list), transform: transform))
 }
 
-func add1ScoreToEachPlayer_v1(players: List<Player>) -> List<Player> {
-    return map(players, transform: add1ScoreToPlayer)
-}
-
 func add1ToEach_v1(_ list: List<Int>) -> List<Int> {
     return map(list, transform: add1)
 }
 
 add1ToEach(listOfInts) == add1ToEach_v1(listOfInts)
+
+func add1ScoreToEachPlayer_v1(players: List<Player>) -> List<Player> {
+    return map(players, transform: add1ScoreToPlayer)
+}
 
 add1ScoreToEachPlayer(players: players) == add1ScoreToEachPlayer_v1(players: players)
 
@@ -195,16 +189,6 @@ extract(players: players, withGreaterThan: 50) == extract_v1(players: players, w
 
 // - OK, map and filter done. What's left?
 
-// - Sum of ints
-
-func sum(_ list: List<Int>) -> Int {
-    return isEmpty(list) ?
-        0 :
-        first(list) + sum(rest(list))
-}
-
-sum(listOfInts)
-
 // - Product of ints
 
 func product(_ list: List<Int>) -> Int {
@@ -214,6 +198,8 @@ func product(_ list: List<Int>) -> Int {
 }
 
 product(listOfInts)
+
+// NOTE: Look on describe
 
 // - Similarities??
 
@@ -225,12 +211,6 @@ func reduce<E, R>(_ list: List<E>, base: R, combine: (E, R) -> R) -> R {
         combine(first(list),
                 reduce(rest(list), base: base, combine: combine))
 }
-
-func sum_v1(_ list: List<Int>) -> Int {
-    return reduce(list, base: 0, combine: +)
-}
-
-sum(listOfInts) == sum_v1(listOfInts)
 
 func product_v1(_ list: List<Int>) -> Int {
     return reduce(list, base: 1, combine: *)

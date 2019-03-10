@@ -1,6 +1,18 @@
 // (abstract list)
 //  The playground called to present standard everyday list operations under a different point of view
 
+/*
+ Привіт!
+ Сьогодні поговоримо про лісти і абстракції що випливають під час і для роботи з лістами.
+ Дуже проста і очевидна тема, на яку я спробую глянути з іншої точки зору.
+ 
+ Отже, ми використовуємо лісти кожного разу коли необхідно працювати з даними довільного розміру.
+ 
+ Давайте задефайнемо найпростіший ліст.
+ 
+ Він може бути або пустий, або складатись з елемента і ліста.
+ */
+
 // - What is List?
 
 // -------------------------------------------------- s_list start
@@ -10,6 +22,10 @@ indirect enum List<E> {
     case list(E, List<E>)
 }
 // -------------------------------------------------- s_list end
+
+/*
+ Напишемо найпростіший API для ліста, код очевидний.
+ */
 
 // - API for List
 
@@ -31,10 +47,15 @@ func first<E>(_ list: List<E>) -> E {
 func rest<E>(_ list: List<E>) -> List<E> {
     switch list {
     case .empty: fatalError("last on empty list")
-    case .list(_, let last): return last
+    case .list(_, let rest): return rest
     }
 }
 // -------------------------------------------------- s_listapi end
+
+/*
+ Також додамо до API спосіб конструювання ліста:
+ cons for construct
+ */
 
 // - List construction
 
@@ -46,19 +67,29 @@ func cons<E>(_ element: E, _ list: List<E>) -> List<E> {
 let listOfInts = cons(1, cons(2, cons(3, .empty)))
 // -------------------------------------------------- s_cons end
 
+/*
+ Для зручності зробимо ліст CustomDebugStringConvertible використавши функцію describe.
+ 
+ Ми повернемось до цієї функції чуть пізніше.
+ */
+
 // - List debug description
 
 // -------------------------------------------------- s_describe start
 func describe<E>(_ list: List<E>) -> String { // Will back to this later
     return isEmpty(list) ?
         ".empty" :
-    "cons(\(first(list)), \(describe(rest(list))))"
+        "cons(\(first(list)), \(describe(rest(list))))"
 }
 
 extension List: CustomDebugStringConvertible {
     var debugDescription: String { return describe(self) }
 }
 // -------------------------------------------------- s_describe end
+
+/*
+ Також додмамо кілька функцій утиліт, для зручності (не звертайте на це уваги поки :))
+ */
 
 // - List Equatable
 
@@ -71,6 +102,10 @@ extension List: Equatable where E: Equatable {
     }
 }
 // -------------------------------------------------- s_eq end
+
+/*
+ І щоб не плутатись у всіх цих дужках спростимо задачу конструювання ліста.
+ */
 
 // - Better construct
 
@@ -89,6 +124,10 @@ func flippedCons<E>(_ list: List<E>, _ element: E) -> List<E> {
 }
 // -------------------------------------------------- s_cons_better end
 
+/*
+ Працювати з інтами цікаво, але давайте створимо щось чуть більш значиме.
+ */
+
 // - Player
 
 // -------------------------------------------------- s_player end
@@ -105,11 +144,20 @@ extension Player: CustomStringConvertible {
     }
 }
 
+/*
+ Такий спосіб конструювання ліста набагато простіший. Чудово!
+ */
+
 // NOTE: Try to play with cons before
 let players: List<Player> = [Player(name: "Andrew", score: 22),
                              Player(name: "Petro", score: 10),
                              Player(name: "James", score: 35)]
 // -------------------------------------------------- s_player end
+
+/*
+ Почнемо з простого. Нехай потрібно всі значення нашого ліста інтів збільшити на 1.
+ Напишемо функцію яка збільшує один інт.
+ */
 
 // - Add1
 
@@ -118,6 +166,14 @@ func add1(_ n: Int) -> Int {
     return n + 1
 }
 // -------------------------------------------------- s_add1 end
+
+
+/*
+ Тепер треба застосувати її для всього ліста. Хедер функції випливає з задачі:
+ 
+ Якщо ліст пустий - результат очевидний. Інакше створимо новий ліст, в який складатиметься з першого елемента
+ збільшеного на 1 + ліста до якого рекурсивно застосуємо add1ToEach. Термінейшн пойт рекурсії буде в .empty.
+ */
 
 // Traversing the list by using so-called `natural` (or structural) recursion
 
@@ -133,6 +189,11 @@ func add1ToEach(_ list: List<Int>) -> List<Int> {
 // -------------------------------------------------- s_add1toeach_head end
 
 add1ToEach(listOfInts)
+
+/*
+ Тепер спробуємо зробити щось з плеєрами. Наприклад дати бонус кожному гравцю.
+ По аналогії пишемо фуекцію для одного гравця. І схожим чином для ліста гравців.
+ */
 
 // -------------------------------------------------- s_add1score start
 func add1ScoreToPlayer(player: Player) -> Player {
@@ -152,6 +213,10 @@ func add1ScoreToEachPlayer(players: List<Player>) -> List<Player> {
 
 add1ScoreToEachPlayer(players: players)
 
+/*
+ Розглянемо add1ToEach та add1ScoreToEachPlayer. По суті, маємо дублювання, яке можна абстрагувати.
+ */
+
 // - Similarities??
 // - Map
 
@@ -163,6 +228,12 @@ func map<E, R>(_ list: List<E>, transform: (E) -> R) -> List<R> {
              map(rest(list), transform: transform))
 }
 // -------------------------------------------------- s_map end
+
+/*
+ Саме так, map є абстракцією проходення і конструювання ліста.
+ 
+ Застосуємо map для реалзації add1ToEach та add1ScoreToEachPlayer та протестуємо:
+ */
 
 // -------------------------------------------------- s_map_add1 start
 func add1ToEach_v1(_ list: List<Int>) -> List<Int> {
@@ -177,6 +248,12 @@ func add1ScoreToEachPlayer_v1(players: List<Player>) -> List<Player> {
 
 add1ScoreToEachPlayer(players: players) == add1ScoreToEachPlayer_v1(players: players)
 // -------------------------------------------------- s_map_add1 end
+
+/*
+ Зробимо ще щось з плеєрами. Наприклад витягнемо всі з більшим ніж заданий score.
+
+ Використовуємо підхдід схожий до map, з різницею лиш в формі конструювання.
+ */
 
 // - The same abstracting rules but for extract
 
@@ -196,6 +273,10 @@ extract(players: players, withGreaterThan: 0)
 extract(players: players, withGreaterThan: 20)
 extract(players: players, withGreaterThan: 50)
 // -------------------------------------------------- s_extract end
+
+/*
+ Для всіх напевне очевидно що це завуальована форма filter. Давайте напишемо і перевіримо.
+ */
 
 // - Filter
 
@@ -221,6 +302,14 @@ extract(players: players, withGreaterThan: 20) == extract_v1(players: players, w
 extract(players: players, withGreaterThan: 50) == extract_v1(players: players, withGreaterThan: 50)
 // -------------------------------------------------- s_filter end
 
+/*
+ Окей, map і filter є, що залишилось? :)
+ 
+ Для прикладу порахуємо добуток інтів.
+ 
+ В нас є якесь базове значення і комбінація "мапання" кожного елемента в результат.
+ */
+
 // - OK, map and filter done. What's left?
 
 // - Product of ints
@@ -234,6 +323,10 @@ func product(_ list: List<Int>) -> Int {
 // -------------------------------------------------- s_product end
 
 product(listOfInts)
+
+/*
+ Тепер повернемось до describe і бачимо те ж саме.
+ */
 
 // NOTE: Look on describe
 
@@ -258,6 +351,10 @@ product(listOfInts) == product_v1(listOfInts)
 
 // - Better describe
 
+/*
+ З використанням reduce describe став ще очевиднішим з "рекурсивної точки зору".
+ */
+
 // -------------------------------------------------- s_describe_reduce start
 func describe_v1<E>(_ list: List<E>) -> String {
     return reduce(list, base: ".empty") { return "cons(\($0), \($1))" }
@@ -267,6 +364,13 @@ describe(listOfInts) == describe_v1(listOfInts)
 // -------------------------------------------------- s_describe_reduce end
 
 // Additionally map & filter possible to express in rules of reduce
+
+/*
+ Основна ідея - всім так знайомі map, filter, reduce є функціональми абстракціями над рекурсивним
+ проходженням списку.
+ 
+ В мене все :)
+ */
 
 // These functions are abstractions on general recursive list travesing.
 // Such different kind of view instead of reducing state variable from `for` loop.
